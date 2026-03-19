@@ -4,8 +4,6 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.ext.declarative import declarative_base
 import os
 
-#ADITYA SHRIVASTAVA R2142231558 BATCH 4 CCVT 6th Semester 3rd Year
-
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://postgres:password@db:5432/webapp")
 
 engine = create_engine(DATABASE_URL)
