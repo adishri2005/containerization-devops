@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Project Assignment 1 | Containerized Infrastructure</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0A0A0A;
+            --glass-bg: rgba(255, 255, 255, 0.03);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --accent: #3F8CFF;
+            --text-primary: #EDEDED;
+            --text-secondary: #A1A1AA;
+            --font-main: 'Inter', sans-serif;
+            --transition: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            cursor: default;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+            letter-spacing: -0.025em;
+        }
+
+        /* Animated Background Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.12;
+            z-index: -1;
+            pointer-events: none;
+        }
+        .orb-1 { width: 600px; height: 600px; background: var(--accent); top: -200px; left: -200px; animation: orbit 25s infinite alternate var(--transition); }
+        .orb-2 { width: 500px; height: 500px; background: #9333ea; bottom: -150px; right: -150px; animation: orbit 30s infinite alternate-reverse var(--transition); }
+        .orb-3 { width: 400px; height: 400px; background: #3b82f6; top: 40%; left: 60%; animation: orbit 20s infinite alternate var(--transition); }
+
+        @keyframes orbit {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(100px, 50px) scale(1.1); }
+        }
+
+        /* Glassmorphism Classes */
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            transition: all 0.5s var(--transition);
+        }
+        .glass:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        /* Bento Grid Layout */
+        .bento {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 1.5rem;
+        }
+
+        .code-container {
+            position: relative;
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            font-family: 'ui-monospace', 'SFMono-Regular', Menlo, Monaco, Consolas, monospace;
+            font-size: 0.8rem;
+            line-height: 1.5;
+            overflow-x: auto;
+            color: #e2e8f0;
+            white-space: pre;
+            tab-size: 4;
+            text-align: left;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 0.75rem;
+            right: 0.75rem;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--glass-border);
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            transition: all 0.3s var(--transition);
+            cursor: pointer;
+            z-index: 20;
+        }
+        .copy-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: transparent;
+        }
+
+        /* Lightbox Styles */
+        #lightbox {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+        #lightbox-img-container {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            overflow: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #lightbox-img {
+            transition: transform 0.3s var(--transition);
+            transform-origin: center center;
+            cursor: grab;
+        }
+        #lightbox-img:active { cursor: grabbing; }
+
+        .lightbox-controls {
+            position: absolute;
+            top: 2rem;
+            right: 2rem;
+            display: flex; gap: 1rem; z-index: 1001;
+        }
+        .control-btn {
+            background: rgba(255, 255, 255, 0.1); border: 1px solid rgba(255, 255, 255, 0.1); color: white; width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; backdrop-filter: blur(10px); transition: all 0.3s var(--transition);
+        }
+        .control-btn:hover { background: var(--accent); }
+
+        /* Typography */
+        h1 { font-weight: 700; letter-spacing: -0.05em; color: var(--text-primary); }
+        h2 { font-weight: 600; letter-spacing: -0.04em; color: var(--text-primary); }
+        h3 { font-weight: 500; letter-spacing: -0.03em; color: var(--text-primary); }
+        p { font-weight: 300; color: var(--text-secondary); line-height: 1.7; }
+        
+        .gallery-item { cursor: pointer; overflow: hidden; border-radius: 20px; }
+        .gallery-item img { transition: transform 0.8s var(--transition); }
+        .gallery-item:hover img { transform: scale(1.08); }
+
+        .terminal-block {
+            background: #000;
+            border: 1px solid #1a1a1a;
+            border-radius: 12px;
+            padding: 1.25rem;
+            font-family: 'ui-monospace', monospace;
+            font-size: 0.75rem;
+            line-height: 1.6;
+            color: #3F8CFF;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            white-space: pre-wrap;
+            text-align: left;
+        }
+
+        @media (max-width: 1024px) {
+            .bento { display: flex; flex-direction: column; }
+        }
+
+        .ascii-diag {
+            background: #000; border: 1px solid #1a1a1a; padding: 2rem; border-radius: 1rem; font-family: 'ui-monospace', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; color: #60a5fa; white-space: pre; font-size: 0.75rem; line-height: 1.25; overflow-x: auto; width: 100%; text-align: left;
+        }
+
+        .report-table { width: 100%; border-collapse: collapse; text-align: left; }
+        .report-table th, .report-table td { padding: 1rem; border-bottom: 1px solid #1a1a1a; }
+        .report-table th { color: var(--text-secondary); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; }
+
+        .objective-list li {
+            margin-bottom: 0.5rem;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        .objective-list li::before {
+            content: '→';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12 lg:p-20 max-w-[1600px] mx-auto text-left">
+
+    <!-- Background Layer -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Header Section -->
+    <header class="mb-24 flex flex-col md:flex-row justify-between items-start md:items-end gap-12">
+        <div class="max-w-3xl">
+            <p class="text-blue-500 font-bold tracking-[0.2em] uppercase text-xs mb-4">Project Assignment 1</p>
+            <h1 class="text-4xl md:text-6xl mb-6">Containerized Web App <br><span class="text-zinc-500">with PostgreSQL & Macvlan</span></h1>
+            <p class="text-lg max-w-2xl font-light text-zinc-400">Design, containerize, and deploy a web application using Docker Compose and advanced Layer 2 networking logic.</p>
+        </div>
+        <a href="https://github.com/adishri2005/containerization-devops" class="glass px-8 py-4 flex items-center gap-4 group hover:bg-white hover:text-black transition-all">
+            <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 21.795 24 17.298 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            <span class="font-bold uppercase tracking-widest text-sm">GitHub Repository</span>
+        </a>
+    </header>
+
+    <!-- Objective & Deliverables Context -->
+    <section class="mb-24 grid grid-cols-1 md:grid-cols-2 gap-12">
+        <div class="glass p-10">
+            <h2 class="text-xl mb-6 italic">Project Objective</h2>
+            <ul class="objective-list text-sm text-zinc-400 font-light">
+                <li>Production-ready image building with FastAPI</li>
+                <li>Separate Dockerfiles for Backend & Database</li>
+                <li>Multi-stage build optimization strategy</li>
+                <li>Layer 2 networking using Macvlan driver</li>
+                <li>Persistent storage via Docker Volumes</li>
+                <li>Service Orchestration with Docker Compose</li>
+            </ul>
+        </div>
+        <div class="glass p-10">
+            <h2 class="text-xl mb-6 italic">Core Stack</h2>
+            <div class="flex flex-wrap gap-3">
+                <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-zinc-500">PostgreSQL 15</span>
+                <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-zinc-500">FastAPI</span>
+                <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-zinc-500">Python 3.11-slim</span>
+                <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-zinc-500">Macvlan Bridge</span>
+                <span class="px-4 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-bold uppercase tracking-widest text-zinc-500">Alpine Linux</span>
+            </div>
+            <p class="mt-8 text-xs text-zinc-500">Demonstrating modern containerization concepts and infrastructure transparency.</p>
+        </div>
+    </section>
+
+    <!-- Infrastructure Grid -->
+    <main class="bento mb-32">
+        <div class="glass col-span-12 lg:col-span-8 p-10 relative">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl italic tracking-tighter">backend/Dockerfile</h2>
+                <div class="px-3 py-1 bg-zinc-900/50 border border-white/5 rounded text-[0.6rem] font-bold uppercase tracking-widest text-zinc-500 mr-20 lg:mr-0">Multi-Stage Build</div>
+            </div>
+            <button class="copy-btn" onclick="copyCode('code-backend')">Copy</button>
+            <div class="code-container" id="code-backend"># Stage 1: Build dependencies
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY requirements.txt .
+# Build wheels
+RUN pip wheel --no-cache-dir --no-deps --wheel-dir /app/wheels -r requirements.txt
+
+# Stage 2: Final production image
+FROM python:3.11-slim
+
+WORKDIR /app
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpq5 \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=builder /app/wheels /wheels
+RUN pip install --no-cache /wheels/*
+
+COPY . /app
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
+EXPOSE 8000
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]</div>
+        </div>
+
+        <div class="glass col-span-12 lg:col-span-4 p-10 flex flex-col justify-start">
+            <h2 class="text-xl mb-4 italic">Network Protocol</h2>
+            <p class="text-sm mb-6 text-zinc-400">Mandatory isolation configuration for direct host-interface mapping.</p>
+            <div class="terminal-block">
+docker network create -d macvlan \<br>
+--subnet=192.168.100.0/24 \<br>
+--gateway=192.168.100.1 \<br>
+-o parent=eth0 host_macvlan
+            </div>
+        </div>
+
+        <div class="glass col-span-12 lg:col-span-5 p-10 relative">
+            <h2 class="text-xl mb-6 italic">database/Dockerfile</h2>
+            <button class="copy-btn" onclick="copyCode('code-db')">Copy</button>
+            <div class="code-container" id="code-db">FROM postgres:15-alpine
+
+# Copy initialization script
+COPY init.sql /docker-entrypoint-initdb.d/
+
+# Ensure appropriate permissions
+RUN chmod a+r /docker-entrypoint-initdb.d/init.sql</div>
+        </div>
+
+        <div class="glass col-span-12 lg:col-span-7 p-10 relative">
+            <h2 class="text-xl mb-6 italic">docker-compose.yml</h2>
+            <button class="copy-btn" onclick="copyCode('code-compose')">Copy</button>
+            <div class="code-container" id="code-compose">version: '3.8'
+
+services:
+  db:
+    build:
+      context: ./database
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: webapp
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - macvlan_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d webapp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/webapp
+    ports:
+      - "8000:8000"
+    networks:
+      - macvlan_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+
+networks:
+  macvlan_net:
+    external: true
+    name: host_macvlan</div>
+        </div>
+    </main>
+
+    <!-- Execution Proofs Section -->
+    <section class="mb-32">
+        <h2 class="text-3xl font-light mb-12 flex items-center gap-6">Project <span class="text-zinc-600">Proofs</span> <div class="h-px flex-1 bg-zinc-900"></div></h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <div class="glass p-6 gallery-item" onclick="openLightbox('screenshot1.png')">
+                <div class="rounded-xl overflow-hidden mb-6">
+                    <img src="screenshot1.png" alt="docker network inspect" class="w-full">
+                </div>
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-blue-500 mb-2">Deliverable 01</p>
+                <h3 class="font-bold">Network Inspection</h3>
+            </div>
+            <div class="glass p-6 gallery-item" onclick="openLightbox('screenshot2.png')">
+                <div class="rounded-xl overflow-hidden mb-6">
+                    <img src="screenshot2.png" alt="Container IPs" class="w-full">
+                </div>
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-purple-500 mb-2">Deliverable 02</p>
+                <h3 class="font-bold">Container IP Logic</h3>
+            </div>
+            <div class="glass p-6 gallery-item" onclick="openLightbox('screenshot2.png')">
+                <div class="rounded-xl overflow-hidden mb-6">
+                    <img src="screenshot2.png" alt="Persistence Test" class="w-full">
+                </div>
+                <p class="text-[0.6rem] font-bold uppercase tracking-widest text-green-500 mb-2">Deliverable 03</p>
+                <h3 class="font-bold">Persistence Test</h3>
+            </div>
+        </div>
+    </section>
+
+    <!-- Short Report Section -->
+    <section class="mb-32">
+        <div class="glass p-12 lg:p-20">
+            <div class="max-w-4xl mx-auto">
+                <h2 class="text-4xl md:text-5xl mb-16 tracking-tighter">Short <span class="text-blue-500 italic">Report.</span></h2>
+                
+                <div class="space-y-20">
+                    <div>
+                        <h3 class="text-zinc-100 uppercase tracking-widest text-xs font-bold mb-6">1. Build Optimization Analysis</h3>
+                        <p class="text-lg text-zinc-400 font-light">By utilizing a multi-stage compilation pattern, the final production footprint is reduced by over 70%, stripping away build-essential tools and source caches.</p>
+                    </div>
+
+                    <div class="ascii-diag">
++-------------------------------------------------------------+
+|               Host Machine / Physical Switch                |
+|               (eth0 / Physical Interface)                   |
++-----------------------------+-------------------------------+
+                              |
++-----------------------------v-------------------------------+
+|               Macvlan Network (802.1q Bridge)               |
++--------------+-------------------------------+--------------+
+               |                               |
+     +---------v---------+           +---------v---------+
+     |   FastAPI Backend |           |   PostgreSQL DB   |
+     |    (Container)    |           |    (Container)    |
+     | Unique MAC & IP   |           | Unique MAC & IP   |
+     +---------+---------+           +---------+---------+</div>
+
+                    <div>
+                        <h3 class="text-zinc-100 uppercase tracking-widest text-xs font-bold mb-6">2. Image Size Comparison</h3>
+                        <div class="overflow-x-auto">
+                            <table class="report-table">
+                                <thead class="text-zinc-500 italic">
+                                    <tr>
+                                        <th>Build Strategy</th>
+                                        <th>Container Footprint</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="text-zinc-300">
+                                    <tr>
+                                        <td class="py-6 font-semibold">Standard Single-Stage Build</td>
+                                        <td class="py-6">~450MB</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-6 font-semibold">Optimized Multi-Stage Build</td>
+                                        <td class="py-6 text-blue-400 font-bold">~135MB</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div>
+                        <h3 class="text-zinc-100 uppercase tracking-widest text-xs font-bold mb-6">3. Macvlan vs. Ipvlan</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mt-8">
+                            <div class="p-8 bg-white/5 rounded-2xl border border-white/5">
+                                <h4 class="font-bold mb-4 text-blue-500 uppercase tracking-widest text-[0.6rem]">Macvlan Implementation</h4>
+                                <p class="text-sm font-light leading-relaxed">Unique IP/MAC per container. Perception as hardware. Best for full switch control.</p>
+                            </div>
+                            <div class="p-8 bg-white/5 rounded-2xl border border-white/5">
+                                <h4 class="font-bold mb-4 text-purple-500 uppercase tracking-widest text-[0.6rem]">Ipvlan Alternative</h4>
+                                <p class="text-sm font-light leading-relaxed">Shared MAC, Unique IPs. Critical for AWS/Cloud restrictions where MAC spoofing is blocked.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="text-center pb-24 border-t border-zinc-900 pt-16">
+        <p class="text-[0.6rem] uppercase tracking-[0.5em] font-bold text-zinc-700">Aditya Shrivastava | 500124727 | CCVT BATCH 4</p>
+    </footer>
+
+    <!-- Lightbox Modal -->
+    <div id="lightbox">
+        <div class="lightbox-controls">
+            <button class="control-btn" onclick="zoomLightbox(0.1)" title="Zoom In">+</button>
+            <button class="control-btn" onclick="zoomLightbox(-0.1)" title="Zoom Out">-</button>
+            <button class="control-btn" onclick="closeLightbox()" title="Close">×</button>
+        </div>
+        <div id="lightbox-img-container" onclick="handleOutsideClick(event)">
+            <img id="lightbox-img" src="" alt="Proof Enlarged">
+        </div>
+    </div>
+
+    <script>
+        function copyCode(containerId) {
+            const container = document.getElementById(containerId);
+            const text = container.innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = event.target;
+                const originalText = btn.textContent;
+                btn.textContent = 'Copied';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                    btn.style.background = '';
+                }, 2000);
+            });
+        }
+
+        const lightbox = document.getElementById('lightbox');
+        const lightboxImg = document.getElementById('lightbox-img');
+        let currentScale = 1;
+
+        function openLightbox(src) {
+            lightboxImg.src = src;
+            lightbox.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+            currentScale = 1;
+            updateScale();
+            lightboxImg.style.transform = 'scale(1) translate(0px, 0px)';
+        }
+
+        function closeLightbox() {
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function zoomLightbox(delta) {
+            currentScale = Math.max(0.2, Math.min(5, currentScale + delta));
+            updateScale();
+        }
+
+        function updateScale() {
+            lightboxImg.style.transform = `scale(${currentScale}) translate(${currentX / currentScale}px, ${currentY / currentScale}px)`;
+        }
+
+        function handleOutsideClick(e) {
+            if (e.target.id === 'lightbox-img-container') {
+                closeLightbox();
+            }
+        }
+
+        let isDragging = false;
+        let startX, startY;
+        let currentX = 0, currentY = 0;
+
+        lightboxImg.onmousedown = (e) => {
+            isDragging = true;
+            startX = e.clientX - currentX;
+            startY = e.clientY - currentY;
+            lightboxImg.style.cursor = 'grabbing';
+            e.preventDefault();
+        };
+
+        window.onmousemove = (e) => {
+            if (!isDragging) return;
+            currentX = e.clientX - startX;
+            currentY = e.clientY - startY;
+            lightboxImg.style.transform = `scale(${currentScale}) translate(${currentX / currentScale}px, ${currentY / currentScale}px)`;
+        };
+
+        window.onmouseup = () => {
+            isDragging = false;
+            lightboxImg.style.cursor = 'grab';
+        };
+    </script>
+</body>
+</html>

@@ -18,7 +18,7 @@ class User(Base):
     name = Column(String, index=True)
     email = Column(String, unique=True, index=True)
 
-app = FastAPI(title="Backend API")
+app = FastAPI(title="Backend API") 
 
 def get_db():
     db = SessionLocal()
