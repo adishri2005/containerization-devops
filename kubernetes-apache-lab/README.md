@@ -6,7 +6,7 @@
   
   [![Kubernetes](https://img.shields.io/badge/kubernetes-%23326ce5.svg?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
   [![Apache](https://img.shields.io/badge/apache-%23D22128.svg?style=for-the-badge&logo=apache&logoColor=white)](https://httpd.apache.org/)
-  [![Status](https://img.shields.io/badge/Status-Completed-success?style=for-the-badge)](#)
+
 
   <br/><br/>
   <h3>Submitted by:</h3>
