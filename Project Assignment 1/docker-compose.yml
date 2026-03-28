@@ -1,42 +1,117 @@
+# =============================================================================
+# DOCKER COMPOSE CONFIGURATION FILE
+# =============================================================================
+# This file defines a multi-container Docker application using Docker Compose.
+# It orchestrates two services: a PostgreSQL database and a FastAPI backend.
+# Docker Compose reads this file to build, configure, and run all the containers
+# together as a single application stack.
+#
+# To start all services:   docker-compose up --build
+# To stop all services:    docker-compose down
+# To stop and remove data: docker-compose down -v  (removes volumes too)
+# =============================================================================
+
+# 'version' specifies the Docker Compose file format version.
+# Version 3.8 supports features like healthchecks, deploy configs, etc.
 version: '3.8'
 
+# =============================================================================
+# SERVICES SECTION
+# =============================================================================
+# Each entry under 'services' defines a separate container that Docker will run.
+# These containers can communicate with each other over the defined network.
 services:
-  db:
-    build:
-      context: ./database
-      dockerfile: Dockerfile
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: webapp
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - macvlan_net
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d webapp"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
 
-  backend:
+  # ---------------------------------------------------------------------------
+  # DATABASE SERVICE (PostgreSQL)
+  # ---------------------------------------------------------------------------
+  # This service runs a PostgreSQL 15 database server.
+  # It is responsible for storing all application data (e.g., user records).
+  db:
+    # 'build' tells Docker to build a custom image from a Dockerfile
+    # instead of pulling a pre-built image from Docker Hub.
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ./database           # Path to the folder containing the Dockerfile
+      dockerfile: Dockerfile         # Name of the Dockerfile to use for building
+
+    # 'environment' sets environment variables inside the container.
+    # These are used by PostgreSQL to configure itself on first startup.
+    environment:
+      POSTGRES_USER: postgres        # The superuser username for PostgreSQL
+      POSTGRES_PASSWORD: password    # The password for the superuser account
+      POSTGRES_DB: webapp            # The default database to create on startup
+
+    # 'volumes' mounts a persistent storage volume to the container.
+    # This ensures that database data survives container restarts/rebuilds.
+    # Without this, all data would be lost every time the container stops.
+    volumes:
+      - pgdata:/var/lib/postgresql/data  # Maps named volume 'pgdata' to Postgres data directory
+
+    # 'networks' connects this container to the specified Docker network.
+    # Both services must be on the same network to communicate with each other.
+    networks:
+      - macvlan_net                  # Attach to the macvlan network for inter-container communication
+
+    # 'healthcheck' defines a command Docker runs periodically to check
+    # if the container is healthy and ready to accept connections.
+    # Other services (like backend) can wait for this health status before starting.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d webapp"]  # pg_isready checks if Postgres is accepting connections
+      interval: 10s                  # Run the health check every 10 seconds
+      timeout: 5s                    # If the check takes more than 5 seconds, consider it failed
+      retries: 5                     # After 5 consecutive failures, mark the container as unhealthy
+
+  # ---------------------------------------------------------------------------
+  # BACKEND SERVICE (FastAPI Python Application)
+  # ---------------------------------------------------------------------------
+  # This service runs the FastAPI web application that serves the REST API.
+  # It connects to the database service above for data persistence.
+  backend:
+    # Build the backend image from the Dockerfile in the ./backend directory
+    build:
+      context: ./backend             # Path to the folder containing the backend Dockerfile
+      dockerfile: Dockerfile         # Name of the Dockerfile to use for building
+
+    # 'environment' passes the database connection string to the backend app.
+    # The hostname 'db' refers to the database service defined above —
+    # Docker Compose automatically resolves service names to container IPs.
     environment:
       DATABASE_URL: postgresql://postgres:password@db:5432/webapp
+      #              protocol://user:pass@hostname:port/database_name
+      # 'db' here is resolved by Docker's internal DNS to the IP of the db container
+
+    # 'ports' maps a port on the host machine to a port inside the container.
+    # Format: "HOST_PORT:CONTAINER_PORT"
+    # This makes the FastAPI app accessible at http://localhost:8000
     ports:
-      - "8000:8000"
+      - "8000:8000"                  # Expose container port 8000 on host port 8000
+
+    # Connect to the same network as the database service
     networks:
       - macvlan_net
+
+    # 'depends_on' controls the startup order of services.
+    # The backend will only start AFTER the db service passes its healthcheck.
+    # This prevents the backend from crashing because the database isn't ready yet.
     depends_on:
       db:
-        condition: service_healthy
+        condition: service_healthy   # Wait until the db container reports as healthy
 
+# =============================================================================
+# VOLUMES SECTION
+# =============================================================================
+# Named volumes provide persistent storage that survives container lifecycle.
+# Docker manages these volumes — they are stored on the host filesystem.
 volumes:
-  pgdata:
+  pgdata:                            # Named volume for PostgreSQL data persistence
 
+# =============================================================================
+# NETWORKS SECTION
+# =============================================================================
+# Networks allow containers to discover and communicate with each other.
+# A macvlan network gives each container its own IP address on the physical network,
+# making them appear as physical devices on the LAN (useful for direct network access).
 networks:
   macvlan_net:
-    external: true
-    name: host_macvlan
+    external: true                   # This network must already exist (created outside Compose)
+    name: host_macvlan               # The name of the pre-existing macvlan network on the host

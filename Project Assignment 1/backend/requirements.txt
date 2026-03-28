@@ -1,5 +1,35 @@
+# =============================================================================
+# PYTHON DEPENDENCIES — requirements.txt
+# =============================================================================
+# This file lists all the Python packages (libraries) that the backend
+# application needs to run. When Docker builds the image, it reads this file
+# and installs each package using pip.
+#
+# Format: package_name>=minimum_version
+# The '>=' means "install this version or any newer compatible version."
+# =============================================================================
+
+# FastAPI — A modern, high-performance web framework for building REST APIs.
+# It auto-generates interactive API docs (Swagger UI) at /docs.
 fastapi>=0.100.0
+
+# Uvicorn — An ASGI (Asynchronous Server Gateway Interface) web server.
+# It is the server that actually runs the FastAPI application and handles
+# incoming HTTP requests. Think of it as the "engine" that powers FastAPI.
 uvicorn>=0.23.0
+
+# psycopg2-binary — The PostgreSQL database adapter for Python.
+# This is the driver that allows Python/SQLAlchemy to communicate with
+# the PostgreSQL database. The '-binary' version includes pre-compiled
+# C extensions, so it doesn't require gcc to install (used at runtime).
 psycopg2-binary>=2.9.7
+
+# SQLAlchemy — A powerful ORM (Object Relational Mapper) for Python.
+# It lets us interact with the database using Python classes and objects
+# instead of writing raw SQL queries. Our User model is defined using SQLAlchemy.
 sqlalchemy>=2.0.0
+
+# Pydantic — A data validation library used internally by FastAPI.
+# FastAPI uses Pydantic to validate request/response data, serialize JSON,
+# and generate API documentation schemas automatically.
 pydantic>=2.0.0
