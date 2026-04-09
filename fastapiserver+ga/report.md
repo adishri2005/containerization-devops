@@ -1,7 +1,9 @@
 # Codebase Audit Report
 
-**Student** — Aditya Shrivastava  
+**Name** — Aditya Shrivastava  
 **SAP ID** — 500124727  
+**Enrollment No** — R2142231558  
+**Course** — B.Tech CSE 3rd Year CCVT (6th Sem)  
 **Repository** — [`adishri2005/containerization-devops`](https://github.com/adishri2005/containerization-devops)  
 **Docker Image** — [`adishri2005/fastapi-app:v0.1`](https://hub.docker.com/r/adishri2005/fastapi-app)  
 **Audit Date** — 2026-04-09
