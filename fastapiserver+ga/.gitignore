@@ -1,1 +1,14 @@
+# =============================================================================
+# .gitignore — Files & Folders Excluded from Git Version Control
+# =============================================================================
+# Any file or pattern listed here will be IGNORED by Git — it won't be
+# tracked, committed, or pushed to GitHub. This is critical for keeping
+# sensitive data (passwords, tokens, API keys) out of public repositories.
+# =============================================================================
+
+# Ignore the .env file because it contains the Docker Hub access token
+# (DOCKERTOKEN). If this token were pushed to a public GitHub repo, anyone
+# could use it to push/pull images to your Docker Hub account.
+# Instead, we store it as a GitHub Actions SECRET (Settings → Secrets)
+# so the CI/CD pipeline can use it without exposing it in code.
 .env

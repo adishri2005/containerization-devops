@@ -1,22 +1,96 @@
+# =============================================================================
+# DockerBuild.yml — GitHub Actions CI/CD Pipeline
+# =============================================================================
+# This file defines a CI/CD (Continuous Integration / Continuous Deployment)
+# workflow using GitHub Actions. GitHub Actions is a built-in automation
+# platform that runs tasks (called "workflows") in response to repository
+# events like pushes, pull requests, etc.
+#
+# PURPOSE: Every time code is pushed to the repository, this workflow
+# automatically builds a Docker image from our FastAPI application and
+# pushes it to Docker Hub — no manual intervention needed.
+# =============================================================================
+
+# --- Workflow Name -----------------------------------------------------------
+# This is the human-readable name that appears in the GitHub Actions tab.
 name: Docker image build
 
+# --- Trigger -----------------------------------------------------------------
+# 'on: push' means this workflow runs every time code is pushed to ANY branch.
+# Other common triggers include: pull_request, schedule (cron), workflow_dispatch
+# (manual trigger), etc.
 on: push
 
+# --- Jobs --------------------------------------------------------------------
+# A workflow is made up of one or more "jobs". Each job runs in its own
+# virtual machine (called a "runner"). Jobs run in parallel by default
+# unless you specify dependencies between them.
 jobs:
+  # 'build' is the job ID — we can name it anything. It's referenced
+  # internally if other jobs need to depend on it.
   build:
+    # 'runs-on' specifies the operating system of the runner VM.
+    # 'ubuntu-latest' gives us the most recent Ubuntu LTS runner provided
+    # by GitHub. Docker comes pre-installed on these runners.
     runs-on: ubuntu-latest
 
+    # --- Steps ---------------------------------------------------------------
+    # Steps are individual tasks within a job. They execute sequentially
+    # (one after another) on the same runner machine.
     steps:
+      # STEP 1: CHECKOUT THE CODE ────────────────────────────────────────────
+      # 'uses' invokes a pre-built GitHub Action from the marketplace.
+      # 'actions/checkout@v1' clones (downloads) our repository code onto
+      # the runner so that subsequent steps can access the Dockerfile,
+      # main.py, requirements.txt, etc.
+      # Without this step, the runner VM would be empty — it has no code.
       - uses: actions/checkout@v1
 
+      # STEP 2: LOG IN TO DOCKER HUB ─────────────────────────────────────────
+      # Before we can push an image to Docker Hub, we need to authenticate.
+      #
+      # HOW IT WORKS:
+      #   - ${{ secrets.DOCKERTOKEN }} retrieves the value of the secret
+      #     named 'DOCKERTOKEN' stored in GitHub repo settings
+      #     (Settings → Secrets and variables → Actions).
+      #   - The 'echo ... | docker login --password-stdin' pattern pipes
+      #     the token directly into docker login, avoiding it appearing
+      #     in command history or logs.
+      #   - '-u "adishri2005"' is the Docker Hub username.
+      #
+      # WHY SECRETS?
+      #   Secrets are encrypted environment variables. They are NEVER
+      #   printed in logs and cannot be viewed once set. This prevents
+      #   credentials from being exposed in public repositories.
       - name: Login to DockerHub
         run: |
           echo ${{ secrets.DOCKERTOKEN }} | docker login -u "adishri2005" --password-stdin
 
+      # STEP 3: BUILD THE DOCKER IMAGE ───────────────────────────────────────
+      # 'docker build' reads the Dockerfile and executes each instruction
+      # (FROM, RUN, COPY, etc.) to create a container image.
+      #
+      # FLAGS:
+      #   -t adishri2005/fastapi-app:v0.1
+      #      Tags (names) the image. Format: <dockerhub-username>/<repo>:<tag>
+      #      The tag 'v0.1' is a version label.
+      #
+      #   ./fastapiserver+ga
+      #      The "build context" — Docker looks for the Dockerfile in this
+      #      directory and also makes all files in this directory available
+      #      to COPY instructions.
       - name: Build Docker Image
         run: |
           docker build -t adishri2005/fastapi-app:v0.1 ./fastapiserver+ga
 
+      # STEP 4: PUSH THE IMAGE TO DOCKER HUB ─────────────────────────────────
+      # 'docker push' uploads the locally built image to Docker Hub,
+      # making it publicly available for anyone to pull and run with:
+      #   docker pull adishri2005/fastapi-app:v0.1
+      #   docker run -p 80:80 adishri2005/fastapi-app:v0.1
+      #
+      # This is the "CD" (Continuous Deployment) part — every push to
+      # the repo results in an updated image on Docker Hub automatically.
       - name: Push Docker Image
         run: |
           docker push adishri2005/fastapi-app:v0.1

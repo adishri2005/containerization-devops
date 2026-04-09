@@ -1,2 +1,21 @@
+# =============================================================================
+# requirements.txt — Python Dependency Manifest
+# =============================================================================
+# This file lists all third-party Python packages the application needs.
+# When we run 'pipenv install -r requirements.txt' (see Dockerfile), the
+# package manager reads this file and installs each listed package along
+# with its own sub-dependencies automatically.
+#
+# Only top-level dependencies are listed here; transitive (indirect)
+# dependencies are resolved and installed automatically by the package manager.
+# =============================================================================
+
+# fastapi — The web framework used to build our REST API.
+#           Provides route decorators, automatic JSON serialization,
+#           request validation, and auto-generated Swagger docs at /docs.
 fastapi
+
+# uvicorn — The ASGI server that actually serves incoming HTTP requests.
+#           FastAPI by itself is just a framework; uvicorn is the engine
+#           that listens on a port and forwards requests to FastAPI.
 uvicorn
