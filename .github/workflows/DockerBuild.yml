@@ -1,0 +1,22 @@
+name: Docker image build
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+
+      - name: Login to DockerHub
+        run: |
+          echo ${{ secrets.DOCKERTOKEN }} | docker login -u "adishri2005" --password-stdin
+
+      - name: Build Docker Image
+        run: |
+          docker build -t adishri2005/fastapi-app:v0.1 ./fastapiserver+ga
+
+      - name: Push Docker Image
+        run: |
+          docker push adishri2005/fastapi-app:v0.1
